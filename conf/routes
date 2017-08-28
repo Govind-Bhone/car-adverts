@@ -6,7 +6,8 @@
 GET     /assets/*file               controllers.Assets.versioned(path="/public", file: Asset)
 
 # query processing
-GET     /cars/show                  controllers.queries.QueryController.showAll
+GET     /cars/showAll               controllers.queries.QueryController.showAll
+GET     /cars/showAll/:field        controllers.queries.QueryController.showAllByOrder(field:String)
 GET     /cars/show/:id              controllers.queries.QueryController.showById(id:Int)
 
 # command processing

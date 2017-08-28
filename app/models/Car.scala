@@ -74,9 +74,17 @@ class CarService @Inject()(dbapi: DBApi) {
   }
 
   def getAll: List[Car] = db.withConnection { implicit connection =>
-    SQL("select * from car order by id").as(simple *).
+    SQL("select * from car order by id ASC").as(simple *).
       foldLeft[List[Car]](Nil) { (cs, c) =>
-      cs.+:(c)
+      cs.:+(c)
+    }
+  }
+
+  def getAllByOrderField(field: String): List[Car] = db.withConnection { implicit connection =>
+    val query = s"select * from car order by ${field}"
+    SQL(query).as(simple *).
+      foldLeft[List[Car]](Nil) { (cs, c) =>
+      cs.:+(c)
     }
   }
 
