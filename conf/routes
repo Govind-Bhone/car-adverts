@@ -1,0 +1,15 @@
+# Routes
+# This file defines all application routes (Higher priority routes first)
+# ~~~~
+
+# Map static resources from the /public folder to the /assets URL path
+GET     /assets/*file               controllers.Assets.versioned(path="/public", file: Asset)
+
+# query processing
+GET     /cars/show                  controllers.queries.QueryController.showAll
+GET     /cars/show/:id              controllers.queries.QueryController.showById(id:Int)
+
+# command processing
+POST    /cars/add                   controllers.commands.CommandController.add
+PUT     /cars/:id                   controllers.commands.CommandController.modify(id:Int)
+DELETE  /cars/:id                   controllers.commands.CommandController.delete(id:Int)
