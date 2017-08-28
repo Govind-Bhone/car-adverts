@@ -72,7 +72,7 @@ DB document model or store every field as a separate attribute
 ## System Requirements 
  * Java Runtime Environment above 7 (http://www.oracle.com/technetwork/indexes/downloads/index.html#java)
  * sbt (http://www.scala-sbt.org/0.13/docs/Installing-sbt-on-Linux.html)
- * mysql installation (https://dev.mysql.com/downloads/installer/)
+ * mysql installation (https://dev.mysql.com/downloads/installer/) and starting mysql
 
 ## Steps to Build and Run
  * clone the git repo 
