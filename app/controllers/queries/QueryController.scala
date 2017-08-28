@@ -2,23 +2,21 @@ package controllers.queries
 
 import javax.inject._
 
-import models.Car
+import models.{Car, CarService}
 import play.api._
 import play.api.mvc._
 import play.api.libs.json._
 
 
 @Singleton
-class QueryController @Inject() extends Controller {
+class QueryController @Inject()(carService: CarService) extends Controller {
 
   def showAll = Action {
-    val cars=Car.allCars
-    Ok(Json.toJson(cars))
+    Ok(Json.toJson(carService.getAll))
   }
 
   def showById(id:Int)=Action{
-    val car=Car.findById(id)
-    Ok(Json.toJson(car))
+    Ok(Json.toJson(carService.findById(id)))
   }
 
 }

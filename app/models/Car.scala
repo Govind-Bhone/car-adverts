@@ -1,19 +1,25 @@
 package models
 
-import java.sql.Date
+import java.util.Date
 import java.text.SimpleDateFormat
+import javax.inject.Inject
+
+import anorm.SqlParser.get
+import anorm.{SQL, ~}
+import play.api.db.DBApi
 import play.api.libs.json._
 import play.api.libs.json.Json.toJson
 
 
-class Car (val id:Int,
-           val title:String,
-           val fuel:String,
-           val price:Double,
-           val mileage:Int,
-           val registrationDate:Date)
+class Car(val id: Int,
+          val title: String,
+          val fuel: String,
+          val price: Double,
+          val mileage: Int,
+          val registrationDate: Date)
 
-object Car{
+object Car {
+
   implicit object CarFormat extends Format[Car] {
     // convert from JSON string to a Car object (de-serializing from JSON)
     def reads(json: JsValue): JsResult[Car] = {
@@ -47,20 +53,81 @@ object Car{
     }
   }
 
-  private var cars=List[Car](
-    Car(101,"Mercedes","diesel",45000,20,new java.sql.Date(System.currentTimeMillis())),
-    Car(102,"Audi","diesel",45000,20,new java.sql.Date(System.currentTimeMillis())),
-    Car(103,"Tata","diesel",45000,20,new java.sql.Date(System.currentTimeMillis())),
-    Car(104,"Volgswagen","diesel",45000,20,new java.sql.Date(System.currentTimeMillis()))
-  )
+  def apply(id: Int, title: String, fuel: String,
+            price: Double, mileage: Int, registrationDate: Date): Car = new Car(id, title, fuel, price, mileage, registrationDate)
+}
 
-  def apply(id:Int,title:String,fuel:String,
-            price:Double,mileage:Int,registrationDate:Date):Car=new Car(id,title,fuel,price,mileage,registrationDate)
+@javax.inject.Singleton
+class CarService @Inject()(dbapi: DBApi) {
+  private val db = dbapi.database("default")
 
-  def allCars=cars
-  def findById(id:Int)=cars.filter(_.id==id)
-  def add(car:Car)=cars=cars.+:(car)
-  def remove(car:Car)=cars=cars.filter(_.id!=car.id)
-  def removeById(id:Int)=cars=cars.filter(_.id!=id)
+  val simple = {
+    get[Int]("car.id") ~
+      get[String]("car.title") ~
+      get[String]("car.fuel") ~
+      get[Double]("car.price") ~
+      get[Int]("car.mileage") ~
+      get[Date]("car.registrationDate") map {
+      case id ~ title ~ fuel ~ price ~ mileage ~ registrationDate =>
+        new Car(id, title, fuel, price, mileage, registrationDate)
+    }
+  }
+
+  def getAll: List[Car] = db.withConnection { implicit connection =>
+    SQL("select * from car order by id").as(simple *).
+      foldLeft[List[Car]](Nil) { (cs, c) =>
+      cs.+:(c)
+    }
+  }
+
+  def findById(id: Int): Option[Car] = {
+    db.withConnection { implicit connection =>
+      SQL("select * from car where id = {id}").on('id -> id).as(simple.singleOpt)
+    }
+  }
+
+  def update(id: Int, car: Car) = {
+    db.withConnection { implicit connection =>
+      SQL(
+        """
+          update car
+          set title = {title}, fuel = {fuel}, price = {price}, mileage = {mileage},registrationDate={registrationDate}
+          where id = {id}
+        """
+      ).on(
+        'id -> id,
+        'title -> car.title,
+        'fuel -> car.fuel,
+        'price -> car.price,
+        'mileage -> car.mileage,
+        'registrationDate->car.registrationDate
+      ).executeUpdate()
+    }
+  }
+
+  def insert(car: Car) = {
+    db.withConnection { implicit connection =>
+      SQL(
+        """
+          insert into car values (
+            {id},{title}, {fuel}, {price}, {mileage},{registrationDate}
+          )
+        """
+      ).on(
+        'id -> car.id,
+        'title -> car.title,
+        'fuel -> car.fuel,
+        'price -> car.price,
+        'mileage -> car.mileage,
+        'registrationDate->car.registrationDate
+      ).executeUpdate()
+    }
+  }
+
+  def delete(id: Long) = {
+    db.withConnection { implicit connection =>
+      SQL("delete from car where id = {id}").on('id -> id).executeUpdate()
+    }
+  }
 }
 
