@@ -94,7 +94,7 @@ class CarService @Inject()(dbapi: DBApi) {
     }
   }
 
-  def update(id: Int, car: Car) = {
+  def update(id: Int, car: Car):Int = {
     db.withConnection { implicit connection =>
       SQL(
         """
