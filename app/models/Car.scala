@@ -11,11 +11,11 @@ import play.api.libs.json.Json.toJson
 import scala.util.Try
 
 class Car(val id: Int,
-               val title: String,
-               val fuel: String,
-               val price: Double,
-               val mileage: Option[Int],
-               val registrationDate: Option[Date])
+          val title: String,
+          val fuel: String,
+          val price: Double,
+          val mileage: Option[Int],
+          val registrationDate: Option[Date])
 
 
 object Car {
@@ -35,20 +35,14 @@ object Car {
     // convert from Car object to JSON (serializing to JSON)
     def writes(s: Car): JsValue = {
       val dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'hh:mm:ss'Z'")
-      val carAsList = Seq(
+      var carAsList = Seq(
         "id" -> JsNumber(s.id),
         "title" -> JsString(s.title),
         "fuel" -> JsString(s.fuel),
-        "price" -> JsNumber(s.price),
-        "mileage" ->JsString(s.mileage.getOrElse("").toString),
-        "registrationDate" -> toJson(
-          s.registrationDate.map(
-            date => dateFormat.format(date)
-          ).getOrElse(
-            ""
-          )
-        )
+        "price" -> JsNumber(s.price)
       )
+      if (s.registrationDate.isDefined) carAsList = carAsList.:+("registrationDate" -> JsString(dateFormat.format(s.registrationDate.get)))
+      if (s.mileage.isDefined) carAsList=carAsList.:+("mileage"->JsNumber(s.mileage.get))
       JsObject(carAsList)
     }
   }
