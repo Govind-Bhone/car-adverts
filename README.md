@@ -82,7 +82,7 @@ DB document model or store every field as a separate attribute
 
 ## Running Service requests
  * go to browser and type `http://localhost:9000/<serviceurl>`
- * curl command `curl --header "Content-type: application/json" --request POST --data '{"id":114,"title":"Tata","fuel":"diesel","price":5000,"mileage":20,"registrationDate":"2017-08-28T01:03:09Z"}' http://localhost:9000/cars/add`
+ * curl command `curl --header "Content-type: application/json" --request POST --data '{"id":114,"title":"Tata","isNew":false,"fuel":"diesel","price":5000,"mileage":20,"registrationDate":"2017-08-28T01:03:09Z"}' http://localhost:9000/cars/add`
 
 ## Expected Output 
 ![Result1](get_request.JPG)
