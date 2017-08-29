@@ -5,11 +5,11 @@ import javax.inject._
 import models.CarService
 import play.api.mvc._
 import play.api.libs.json._
-
+import net.liftweb.json.DefaultFormats
 
 @Singleton
 class QueryController @Inject()(carService: CarService) extends Controller {
-
+  implicit val formats = DefaultFormats
   def showAll = Action {
     val data = carService.getAll
     if (data.isEmpty) Ok(views.html.index(s"No records found")) else

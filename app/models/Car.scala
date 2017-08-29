@@ -1,22 +1,22 @@
 package models
 
-import java.util.Date
 import java.text.SimpleDateFormat
+import java.util.Date
 import javax.inject.Inject
-
 import anorm.SqlParser.get
 import anorm.{SQL, ~}
 import play.api.db.DBApi
 import play.api.libs.json._
 import play.api.libs.json.Json.toJson
-
+import scala.util.Try
 
 class Car(val id: Int,
-          val title: String,
-          val fuel: String,
-          val price: Double,
-          val mileage: Int,
-          val registrationDate: Date)
+               val title: String,
+               val fuel: String,
+               val price: Double,
+               val mileage: Option[Int],
+               val registrationDate: Option[Date])
+
 
 object Car {
 
@@ -27,8 +27,8 @@ object Car {
       val title = (json \ "title").as[String]
       val fuel = (json \ "fuel").as[String]
       val price = (json \ "price").as[Double]
-      val mileage = (json \ "mileage").as[Int]
-      val registrationDate = (json \ "registrationDate").as[Date]
+      val mileage = Try((json \ "mileage").as[Int]).toOption
+      val registrationDate = Try((json \ "registrationDate").as[Date]).toOption
       JsSuccess(new Car(id, title, fuel, price, mileage, registrationDate))
     }
 
@@ -40,9 +40,9 @@ object Car {
         "title" -> JsString(s.title),
         "fuel" -> JsString(s.fuel),
         "price" -> JsNumber(s.price),
-        "mileage" -> JsNumber(s.mileage),
+        "mileage" ->JsString(s.mileage.getOrElse("").toString),
         "registrationDate" -> toJson(
-          Some(s.registrationDate).map(
+          s.registrationDate.map(
             date => dateFormat.format(date)
           ).getOrElse(
             ""
@@ -54,7 +54,7 @@ object Car {
   }
 
   def apply(id: Int, title: String, fuel: String,
-            price: Double, mileage: Int, registrationDate: Date): Car = new Car(id, title, fuel, price, mileage, registrationDate)
+            price: Double, mileage: Option[Int], registrationDate: Option[Date]): Car = new Car(id, title, fuel, price, mileage, registrationDate)
 }
 
 @javax.inject.Singleton
@@ -66,8 +66,8 @@ class CarService @Inject()(dbapi: DBApi) {
       get[String]("car.title") ~
       get[String]("car.fuel") ~
       get[Double]("car.price") ~
-      get[Int]("car.mileage") ~
-      get[Date]("car.registrationDate") map {
+      get[Option[Int]]("car.mileage") ~
+      get[Option[Date]]("car.registrationDate") map {
       case id ~ title ~ fuel ~ price ~ mileage ~ registrationDate =>
         new Car(id, title, fuel, price, mileage, registrationDate)
     }
@@ -81,7 +81,7 @@ class CarService @Inject()(dbapi: DBApi) {
   }
 
   def getAllByOrderField(field: String): List[Car] = db.withConnection { implicit connection =>
-    val query = s"select * from car order by ${field}"
+    val query = s"select * from car order by $field"
     SQL(query).as(simple *).
       foldLeft[List[Car]](Nil) { (cs, c) =>
       cs.:+(c)
@@ -94,7 +94,7 @@ class CarService @Inject()(dbapi: DBApi) {
     }
   }
 
-  def update(id: Int, car: Car):Int = {
+  def update(id: Int, car: Car): Int = {
     db.withConnection { implicit connection =>
       SQL(
         """
@@ -108,7 +108,7 @@ class CarService @Inject()(dbapi: DBApi) {
         'fuel -> car.fuel,
         'price -> car.price,
         'mileage -> car.mileage,
-        'registrationDate->car.registrationDate
+        'registrationDate -> car.registrationDate
       ).executeUpdate()
     }
   }
@@ -127,7 +127,7 @@ class CarService @Inject()(dbapi: DBApi) {
         'fuel -> car.fuel,
         'price -> car.price,
         'mileage -> car.mileage,
-        'registrationDate->car.registrationDate
+        'registrationDate -> car.registrationDate
       ).executeUpdate()
     }
   }
